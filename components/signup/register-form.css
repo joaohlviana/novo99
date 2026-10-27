@@ -1,0 +1,28 @@
+/* Candidate registration shell, scoped to avoid changing existing screens. Source: CONSISTENCIA-DS.md and design-system.css, Componentes-16. */
+.register-shell {min-height:100dvh;background:#EFEDEA;padding-bottom:48px;color:#121214}
+.register-header {max-width:76rem;margin:auto;padding:0 24px;height:104px;display:flex;align-items:center;gap:16px}
+.register-header img {height:28px;width:auto;display:block}
+.register-back {display:grid;place-items:center;width:44px;height:44px;color:inherit;text-decoration:none}
+.register-card {width:calc(100% - 32px);max-width:560px;margin:10px auto 40px;padding:32px;border-radius:28px;background:white;display:flex;flex-direction:column;gap:24px;box-shadow:0 1px 2px rgba(18,18,20,.04),0 10px 28px -14px rgba(18,18,20,.18)}
+.register-heading h1 {font:700 28px/1.15 Anton,sans-serif;letter-spacing:-.02em;margin:8px 0}
+.register-heading>p:not(.register-eyebrow) {font-size:15px;line-height:1.5;margin:0}
+.register-eyebrow,.register-field>label,.register-field:not(div),.register-field legend {font-family:'Space Mono',monospace;font-size:11px}
+.register-card form {display:flex;flex-direction:column;gap:24px}
+.register-field {display:flex;flex-direction:column;gap:8px;min-width:0;border:0;padding:0;margin:0}
+.register-field input:not([type=radio]) {height:48px;width:100%;min-width:0;border:1px solid rgba(18,18,20,.11);border-radius:10px;padding:0 16px;font:400 15px 'Inter Variable',sans-serif}
+.register-field legend {padding:0;margin-bottom:8px}
+.register-roles {display:flex;gap:8px;flex-wrap:wrap}
+.register-roles label {position:relative;display:inline-flex;align-items:center;min-height:44px}
+.register-roles input {position:absolute;opacity:0}
+.register-roles span {height:32px;padding:0 12px;border:1px solid rgba(18,18,20,.11);border-radius:999px;display:flex;align-items:center;font:500 13px 'Inter Variable',sans-serif}
+.register-roles input:checked+span {background:#121214;border-color:#121214;color:#fff}
+.register-roles input:focus-visible+span,.register-shell :is(a,button,input):focus-visible {outline:3px solid #2563eb;outline-offset:3px}
+.register-consent {display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.5}
+.register-consent input {width:20px;height:20px;flex:none}
+.register-hint,.register-error {margin:0;font-size:13px;line-height:1.5}
+.register-error {color:#a20a2d}
+.register-primary,.register-google {min-height:52px;border-radius:999px;font:600 15px 'Inter Variable',sans-serif;padding:0 20px}
+.register-primary {display:flex;justify-content:space-between;align-items:center;background:#121214;color:#fff;border:1px solid #121214}
+.register-google {background:white;color:#191919;border:1px solid #aaa}
+.register-shell button:disabled {opacity:.55;cursor:not-allowed}
+@media (max-width: 600px) {.register-header {height:72px;padding:0 16px}.register-header img {height:26px}.register-card {padding:4px 0;border:0;box-shadow:none;background:none;border-radius:0;margin-top:4px}.register-heading h1 {font-size:24px}.register-primary,.register-google {min-height:48px}}

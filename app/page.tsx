@@ -1,0 +1,3 @@
+export default function Home() {
+  return <><header className="header"><a href="/" aria-label="99Coach, início"><img className="brand" src="/logo.svg" alt="99Coach" width="160" height="41" /></a></header><main id="main" className="main"><p className="eyebrow">TREINAR É UM CAMINHO</p><h1>ENCONTRE SEU TREINADOR.</h1><p>Uma plataforma para aproximar pessoas e profissionais do esporte.</p><nav aria-label="Conta"><a href="/entrar">Entrar</a> · <a href="/cadastro">Cadastro</a></nav><section className="status" aria-labelledby="status-title"><h2 id="status-title">Estamos preparando a plataforma</h2><p>O cadastro e a busca estarão disponíveis assim que as integrações forem validadas.</p></section></main></>;
+}

@@ -1,0 +1,3 @@
+# 99Coach base nova
+
+Aplicação Next.js/Vercel; Supabase Auth/Database/Storage no projeto novo; Meilisearch no Railway; Stripe atual. Não usar Better Auth ou Hono como base, não migrar usuários antigos ou alterar legado. Preservar VFINAL/Componentes-16 e modalidades autorizadas. RLS, autorização por vínculo, múltiplos papéis, sessão, segurança e acessibilidade são requisitos; testes sintéticos não são prova de integração real. Não expor segredos, efetuar cobranças reais ou mudar domínio. As fontes originais online no repositório privado de origem devem ser copiadas somente após conferência de hashes; não removê-las. ECC e Ponytail por fatias/revisão quando disponíveis. Ler guias Next instalados antes de alterações de framework.
