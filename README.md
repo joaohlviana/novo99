@@ -9,3 +9,7 @@ Configuração prevista (nomes, sem valores): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUB
 Nenhuma migration está aprovada para aplicação. A fundação é SELECT-only; a inicialização está em drafts. Antes de ativar: revisão e teste dos cookies/duas abas, callback, retomada e logout; confirmar e-mail real e redirecionamentos; validar desktop e celular. A tela atual é apenas primeira etapa de identidade, não cadastro VFINAL completo.
 
 Fontes: o manifesto original e o bundle DS VFINAL/Componentes-16 permanecem no repositório privado de origem até transferência oficial e verificação dos hashes. Não execute o migrador Better Auth e não migre dados do legado.
+
+A validação do login aceita senhas existentes não vazias; a regra de 12 caracteres é aplicada ao novo cadastro. A confirmação PKCE requer abrir o link no navegador que iniciou a tentativa. Uma perda da resposta pode impedir a confirmação e ainda não há recuperação validada.
+
+`tests/cookie-race.test.mjs` reproduz com SDK instalado e transporte/cookies sintéticos que uma resposta atrasada da conta A pode sobrescrever o cookie da conta B. O segundo cenário demonstra uma verificação por vínculo autoritativo apenas simulado; ela ainda não está implementada. Não há prova em navegador ou no Supabase real. O acesso permanece desligado por padrão enquanto o problema não for resolvido e validado.

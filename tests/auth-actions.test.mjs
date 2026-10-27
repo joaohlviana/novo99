@@ -20,6 +20,12 @@ test('sign in distinguishes invalid credentials from unknown provider outcome',a
  globalThis.__testClient=async()=>({auth:{signInWithPassword:async()=>{throw Error('synthetic failure')}}});
  assert.equal((await actions.signIn('test@example.test','123456789012')).status,'unknown');
 });
+test('sign in sends shorter existing passwords to the provider while signup retains its minimum',async()=>{
+ let received;globalThis.__testClient=async()=>({auth:{signInWithPassword:async input=>{received=input;return {error:null}}}});
+ assert.equal((await actions.signIn('test@example.test','short7')).status,'signed-in');
+ assert.equal(received.password,'short7');
+ assert.equal((await actions.signUp('test@example.test','short7',true)).status,'invalid');
+});
 test('signup sends one request and never repeats after unknown response',async()=>{
  let calls=0;globalThis.__testClient=async()=>({auth:{signUp:async()=>{calls++;throw Error('synthetic loss')}}});
  assert.equal((await actions.signUp('test@example.test','123456789012',true)).status,'unknown');assert.equal(calls,1);
