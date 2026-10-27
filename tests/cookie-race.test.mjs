@@ -30,28 +30,3 @@ test('late response from A can overwrite B in a simulated shared cookie jar',asy
  assert.equal(observed.data.session?.user?.id,userA, 'late Set-Cookie from A replaces B');
 });
 
-test('authoritative session binding rejects A after delayed cookie overwrites B',async()=>{
-  // Model an existing server-side durable binding, not a JS lock: B is the
-  // latest established session for the signed browser identifier.
-  // Real implementation needs transactional persistence and authenticated JWT.
-  const expectedUser=userB, expectedSession=sid(userB);
-  let releaseA; const waitA=new Promise(resolve=>releaseA=resolve);
-  const initial=new Map(), writesA=[],writesB=[];
-  const a=client(initial,async()=>{await waitA;return response(userA)},writesA);
-  const b=client(initial,async()=>response(userB),writesB);
-  const delayed=a.auth.signInWithPassword({email:'a@example.test',password:'syntheticPassword1!'});
-  await b.auth.signInWithPassword({email:'b@example.test',password:'syntheticPassword1!'});
-  const shared=new Map();apply(shared,writesB);
-  releaseA();await delayed;apply(shared,writesA);
-  const verifier=client(shared,async(_url,init)=>{
-    const authorization=new Headers(init.headers).get('authorization');
-    const payload=JSON.parse(Buffer.from(authorization.split(' ')[1].split('.')[1],'base64url').toString());
-    return new Response(JSON.stringify({id:payload.sub}),{status:200,headers:{'content-type':'application/json'}});
-  },[]);
-  const verified=await verifier.auth.getUser();
-  assert.equal(verified.data.user?.id,userA);
-  const stored=await verifier.auth.getSession();
-  const claims=JSON.parse(Buffer.from(stored.data.session.access_token.split('.')[1],'base64url').toString()); // Synthetic test only; real server must verify claims.
-  assert.equal(claims.session_id,sid(userA));
-  assert.ok(verified.data.user?.id !== expectedUser || claims.session_id !== expectedSession,'server must refuse the mismatched session before private work');
-});

@@ -1,0 +1,40 @@
+name: Build and isolated UI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AUTH_SSR_ENABLED: 'false'
+  NEXT_TELEMETRY_DISABLED: '1'
+  CI: 'true'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: node tests/http-smoke.mjs
+      - name: Install browser test dependency (CI only)
+        run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.55.0
+      - name: Install Chromium on runner
+        run: npx playwright install --with-deps chromium
+      - name: Run isolated desktop and mobile UI checks
+        run: node tests/browser/public-ui.e2e.mjs
