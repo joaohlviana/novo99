@@ -21,7 +21,10 @@ try {
     await context.route('**/*', async route => {
       const request = route.request();
       const url = new URL(request.url());
-      if (url.origin === origin && request.method() === 'GET') return route.continue();
+      if (url.origin === origin && request.method() === 'GET') {
+        if (url.searchParams.has('email') || url.searchParams.has('password')) return route.abort();
+        return route.continue();
+      }
       // Exactly the explicitly authorized invalid-password check. Never allow
       // signup, recovery, OTP, or any other provider mutation.
       if (url.origin === provider && url.pathname === '/auth/v1/token' &&
@@ -61,6 +64,7 @@ try {
       const signupPassword = page.getByLabel('Senha', { exact: true });
       await signupPassword.fill('short');
       assert.equal(await signupPassword.evaluate(element => element.validity.valid), false, 'signup password should reject short input');
+      assert.equal(await page.getByLabel('Confirme sua senha').evaluate(element => element.validity.valid), false, 'confirmation should be required');
       assert.equal(await page.getByRole('button', { name: 'Continuar com Google' }).isDisabled(), true);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'signup overflow');
       // Do not click the signup button, even with invalid values.
@@ -74,13 +78,34 @@ try {
       await page.getByText('Não foi possível entrar. Confira seus dados e tente novamente.', { exact: true }).waitFor({ timeout: 30000 });
       assert.equal(tokenRequests, 1, 'one invalid login request expected');
       assert.equal(new URL(page.url()).pathname, '/entrar', 'invalid login must not enter the panel');
+      assert.equal(await page.getByLabel('E-mail').isEditable(), true, 'email remains editable after rejection');
+      assert.equal(await page.getByLabel('Senha').isEditable(), true, 'password remains editable after rejection');
+      assert.equal(await page.getByRole('button', { name: 'Entrar', exact: true }).isEnabled(), true, 'manual retry is available');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'login overflow');
 
+      // Direct GETs only: no code, cookie or signup is created. Check privacy
+      // headers before following redirects, not only the final page.
+      const callback = await page.request.get(`${origin}/auth/callback`, { maxRedirects: 0 });
+      assert.ok([302, 303, 307, 308].includes(callback.status()), 'empty callback must redirect to confirmation');
+      assert.match(callback.headers()['cache-control'] || '', /no-store/i, 'callback must not be cached');
+      const callbackDestination = new URL(callback.headers().location || '', origin);
+      assert.equal(callbackDestination.origin, origin, 'callback redirect must remain on preview');
+      assert.equal(callbackDestination.pathname, '/auth/confirmado');
+      const protectedResponse = await page.request.get(`${origin}/painel`, { maxRedirects: 0 });
+      assert.ok([302, 303, 307, 308].includes(protectedResponse.status()), 'anonymous panel must redirect');
+      assert.match(protectedResponse.headers()['cache-control'] || '', /no-store/i, 'private response must not be cached');
+      const destination = new URL(protectedResponse.headers().location || '', origin);
+      assert.equal(destination.origin, origin, 'panel redirect must remain on preview');
+      assert.equal(destination.pathname, '/entrar');
       await page.goto(`${origin}/painel`, { waitUntil: 'domcontentloaded' });
       assert.equal(new URL(page.url()).pathname, '/entrar', 'anonymous panel must redirect to login');
       assert.equal(pageErrors, 0, 'application raised a browser exception');
       assert.equal(unexpectedConsoleErrors, 0, 'unexpected browser console error');
-      console.log(`PASS public preview ${viewport.width}x${viewport.height}: forms, invalid login, anonymous panel and layout`);
+      console.log(`PASS public preview ${viewport.width}x${viewport.height}: forms, invalid login, callback, anonymous panel, cache and layout`);
+    } catch {
+      // Playwright errors can include URLs; never print synthetic credentials
+      // or a provider response to CI logs.
+      throw new Error(`Public preview QA failed at viewport ${viewport.width}x${viewport.height}`);
     } finally { await context.close(); }
   }
 } finally { await browser.close(); }

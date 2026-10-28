@@ -3,11 +3,10 @@ name: Remote public browser QA
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [codex/qa-publico-20261028]
     paths:
       - .github/workflows/remote-public-browser.yml
       - tests/browser/remote-public-qa.e2e.mjs
-      - tests/browser/synthetic-login-guard.mjs
       - tests/browser/synthetic-login-guard.mjs
       - tests/synthetic-login-guard.test.mjs
 
