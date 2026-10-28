@@ -57,7 +57,7 @@ export function AccountSession({ expectedUser, expectedSession }: { expectedUser
     finally { setPending(false); }
   }
   return <main id="main" className="main"><h1>MINHA CONTA</h1>
-    {!ready ? (!notice && <p role="status">Verificando sessão…</p>) : <><p>{email ? `Conta: ${email}` : 'Conta autenticada'}</p><p>O onboarding e os demais módulos ainda estão em preparação.</p><button type="button" disabled={pending} onClick={signOut}>Sair</button></>}
+    {!ready ? (!notice && <p role="status">Verificando sessão…</p>) : <><p>{email ? `Conta: ${email}` : 'Conta autenticada'}</p><p>O perfil de treinador está em preparação; o preenchimento ainda não é salvo.</p><a href="/onboarding/treinador">Preparar perfil de treinador</a><button type="button" disabled={pending} onClick={signOut}>Sair</button></>}
     {notice && <><p role="alert">{notice}</p><a href="/painel">Verificar sessão</a></>}
   </main>;
 }

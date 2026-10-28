@@ -1,0 +1,6 @@
+// Nomes e identificadores da taxonomia autorizada; não inclui IDs do legado.
+export const sports = [
+ ['futebol','Futebol'],['yoga','Yoga'],['jiu-jitsu','Jiu-Jitsu'],['danca','Dança'],['karate','Karatê'],['ginastica','Ginástica'],['funcionais','Funcionais'],['escalada','Escalada'],['boxe','Boxe'],['boliche','Boliche'],['volei','Vôlei'],['baseball','Baseball'],['salto-com-vara','Salto com vara'],['tenis','Tênis'],['tenis-de-mesa','Tênis de Mesa'],['arremesso-de-peso','Arremesso'],['arco-e-flecha','Arco e flecha'],['futebol-americano','Futebol Americano'],['alongamento','Alongamento'],['lutas','Lutas'],['natacao','Natação'],['golfe','Golfe'],['ginastica-artistica','Ginástica Artística'],['musculacao','Musculação'],['crossfit','CrossFit'],['corrida','Corrida'],['ciclismo','Ciclismo'],['basquete','Basquete'],['patinacao','Patinação'],['sinuca','Sinuca'],['fisioterapia','Fisioterapia'],['tiro','Tiro'],['pilates','Pilates'],['lpo','LPO'],
+] as const;
+export const commonSports = ['crossfit','musculacao','funcionais','lpo','corrida','pilates','yoga','lutas'] as const;
+export const normalise = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();

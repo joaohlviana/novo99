@@ -40,3 +40,13 @@ jobs:
         run: node tests/browser/public-ui.e2e.mjs
       - name: Run synthetic shared-session check
         run: node tests/browser/auth-shared-session.e2e.mjs
+      - name: Check VFINAL isolated fixture
+        run: node tests/browser/vfinal.e2e.mjs
+      - name: Preserve synthetic UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vfinal-candidate-screenshots
+          path: vfinal-screenshots/*.png
+          if-no-files-found: ignore
+          retention-days: 7

@@ -24,4 +24,4 @@ export async function proxy(request:NextRequest) {
     return response;
   } catch {const fail=NextResponse.redirect(new URL('/entrar',request.url));fail.headers.set('Cache-Control','private, no-store');return fail;}
 }
-export const config={matcher:['/painel/:path*']};
+export const config={matcher:['/painel/:path*','/onboarding/treinador/:path*']};
