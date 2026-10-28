@@ -1,0 +1,8 @@
+# QA público — entrega parcial
+
+- Ambiente: https://novo99-five.vercel.app; execução de navegador em runner GitHub Actions: https://github.com/joaohlviana/novo99/actions/runs/40609698488, concluída com sucesso, teste na branch de QA (commit 1bdd6f88e91b43ef10575a3b94d041519d81b5f9).
+- Chromium desktop 1280×900 e celular 390×844: navegação pública, validação de campos, rejeição de login de identidade sintética inexistente, formulário editável após rejeição, callback sem código, painel sem sessão, cabeçalhos de cache/noindex, console e overflow passaram no escopo do teste.
+- Nenhum cadastro ou envio de e-mail foi iniciado. O teste não valida autenticação de conta existente, confirmação de e-mail, SMTP, Google, dados privados, rascunhos ou fidelidade visual integral.
+- A tela inicial é provisória; /cadastro cobre identidade Auth. O onboarding de treinador VFINAL e Componentes-16 não está entregue. Aguardar as fontes e critérios autoritativos antes de implementar essa parte.
+- O finding de formulário GET antes da hidratação foi tratado no commit e867ead5181b1b7cada6272dd5aab193ab8a0b0f e validado em CI; a classificação de rejeição confirmada versus resultado incerto foi tratada em dc32b66378501d1b6a7f44d83d079ed06b0f8b56. As verificações reais de Auth, troca de conta, confirmação de e-mail e SMTP seguem pendentes.
+- O fluxo CLI Supabase para a conta correta não foi concluído: foi informado limite de 20 tokens pessoais. Nenhum token foi revogado por inferência e não se deve expor credenciais. Configuração real de redirects e e-mail permanece dependente do acesso oficial em andamento.
