@@ -24,8 +24,10 @@ test('form provides labels, browser constraints and no insecure handler by defau
   const html=render({onSubmit:()=>{}});
   for (const term of ['Nome','E-mail','Senha','Confirme sua senha','18 anos','Como você quer começar?']) assert.ok(html.includes(term));
   assert.match(html,/id="register-password"[^>]*minLength="12"/);
-  assert.match(html,/type="checkbox" required="" name="adult"/);
-  assert.doesNotMatch(html,/<button class="register-primary" type="submit" disabled/);
+  assert.match(html,/<input(?=[^>]*type="checkbox")(?=[^>]*required)(?=[^>]*name="adult")/);
+  assert.match(html,/<form(?=[^>]*method="post")(?=[^>]*action="\/auth\/unavailable")/);
+  assert.match(html,/<button class="register-primary" type="submit" disabled/);
+  assert.match(html,/<input(?=[^>]*name="email")(?=[^>]*disabled)/);
 });
 test('pending and uncertain outcomes block another submission and report the distinction', () => {
   for (const state of ['pending','check-email','unconfirmed']) {

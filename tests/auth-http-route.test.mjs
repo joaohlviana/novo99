@@ -24,7 +24,16 @@ const callback = await load('app/auth/callback/route.ts', js => js
 const middleware = await load('proxy.ts', js => js
   .replace("from 'next/server'", "from 'next/server.js'")
   .replace("from './lib/config.mjs'", "from '../lib/config.mjs'"));
+const unavailable = await load('app/auth/unavailable/route.ts', js => js.replace("from 'next/server'", "from 'next/server.js'"));
 const base = 'https://preview.example.test';
+test('non-hydrated POST fallback does not consume credentials and sends no-store', async () => {
+  const request = new Request(`${base}/auth/unavailable`, {method:'POST',body:'password=synthetic'});
+  const result = await unavailable.POST(request);
+  assert.equal(request.bodyUsed, false);
+  assert.equal(result.status, 503);
+  assert.match(result.headers.get('cache-control'), /no-store/);
+  assert.doesNotMatch(await result.text(), /synthetic/);
+});
 const uid = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const response = value => new Response(JSON.stringify(value), {status:200,headers:{'content-type':'application/json'}});
 const token = exp => ['e30', Buffer.from(JSON.stringify({sub:uid,session_id:'11111111-1111-4111-8111-111111111111',exp})).toString('base64url'), 'synthetic'].join('.');

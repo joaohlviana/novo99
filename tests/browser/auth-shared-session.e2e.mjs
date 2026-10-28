@@ -90,6 +90,39 @@ try {
   for (let i = 0; i < 150; i++) { try { if ((await fetch(appOrigin)).ok) { ready = true; break; } } catch {} await delay(200); }
   assert.ok(ready, 'Fixture server unavailable');
   browser = await chromium.launch();
+  // A JavaScript-disabled browser must never send filled-in credentials by GET
+  // (or send them to the fallback POST). No provider request is permitted.
+  const noJs = await browser.newContext({ javaScriptEnabled: false, serviceWorkers: 'block' });
+  try {
+    for (const pagePath of ['/entrar', '/cadastro']) {
+      const page = await noJs.newPage();
+      let fallback;
+      await page.route('**/*', route => {
+        const req = route.request();
+        const url = new URL(req.url());
+        if (url.origin !== appOrigin) return route.abort();
+        if (url.pathname === '/auth/unavailable') {
+          fallback = { method: req.method(), search: url.search, body: req.postData() || '' };
+          return route.fulfill({ status: 503, body: 'Indisponível' });
+        }
+        return route.continue();
+      });
+      await page.goto(`${appOrigin}${pagePath}`);
+      assert.equal(await page.locator('input[name=email]').isDisabled(), true);
+      assert.equal(await page.locator('input[name=password]').isDisabled(), true);
+      assert.equal(await page.locator('button[type=submit]').isDisabled(), true);
+      await page.locator('input[name=email]').evaluate(el => { el.value = 'synthetic@example.test'; });
+      await page.locator('input[name=password]').evaluate(el => { el.value = 'synthetic-password'; });
+      await Promise.all([
+        page.waitForURL('**/auth/unavailable'),
+        page.locator('form').evaluate(form => form.requestSubmit()),
+      ]);
+      assert.equal(fallback?.method, 'POST');
+      assert.equal(fallback?.search, '');
+      assert.equal(fallback?.body, '');
+      await page.close();
+    }
+  } finally { await noJs.close(); }
   const context = await browser.newContext({ serviceWorkers: 'block' });
   await context.route('**/*', route => {
     const destination = new URL(route.request().url());
