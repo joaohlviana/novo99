@@ -31,7 +31,7 @@ const sawA = new Promise(resolve => { enteredA = resolve; });
 const b64 = value => Buffer.from(JSON.stringify(value)).toString('base64url');
 const userData = u => ({ id: u.id, email: u.email, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' });
 function token(u) {
-  return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: u.id, session_id: u.sid, role: 'authenticated', aud: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600, iat: Math.floor(Date.now() / 1000) })}.synthetic`;
+  return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: u.id, session_id: u.sid, role: 'authenticated', aud: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600, iat: Math.floor(Date.now() / 1000) })}.${Buffer.from('synthetic-signature').toString('base64url')}`;
 }
 const tokenA = token(userA), tokenB = token(userB);
 const tokens = new Map([[tokenA, userA], [tokenB, userB]]);
