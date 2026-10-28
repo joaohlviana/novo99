@@ -19,6 +19,7 @@ let provider, next, browser;
 let pageA, pageB;
 let phase = 'setup';
 const providerEvents = [];
+let rejectedSignups = 0;
 const browserEvents = [];
 const serverSignals = new Set();
 function recordEvent(list, value) { if (list.length < 100) list.push(value); }
@@ -51,6 +52,10 @@ try {
   provider = createServer(async (req, res) => {
     if (req.method === 'OPTIONS') { recordEvent(providerEvents, 'options'); return send(res, 200, {}); }
     const url = new URL(req.url, 'http://127.0.0.1');
+    if (url.pathname === '/auth/v1/signup' && req.method === 'POST') {
+      rejectedSignups++;
+      return send(res, 429, { error_code: 'over_email_send_rate_limit', msg: 'synthetic rejection' });
+    }
     if (url.pathname === '/auth/v1/token' && url.searchParams.get('grant_type') === 'password') {
       let body = ''; for await (const chunk of req) body += chunk;
       const email = JSON.parse(body).email;
@@ -123,6 +128,29 @@ try {
       await page.close();
     }
   } finally { await noJs.close(); }
+  // A provider-confirmed rejection preserves the form and permits an explicit
+  // manual retry. No real signup or email is sent; this is the loopback fake.
+  const rejectedContext = await browser.newContext({ serviceWorkers: 'block' });
+  try {
+    await rejectedContext.route('**/*', route => {
+      const destination = new URL(route.request().url());
+      return [appOrigin, providerOrigin].includes(destination.origin) ? route.continue() : route.abort();
+    });
+    const page = await rejectedContext.newPage();
+    await page.goto(`${appOrigin}/cadastro`);
+    await page.getByLabel('E-mail').fill('rejection@example.test');
+    await page.getByLabel('Senha', { exact: true }).fill('synthetic-password-123');
+    await page.getByLabel('Confirme sua senha').fill('synthetic-password-123');
+    await page.getByRole('checkbox', { name: /18 anos/ }).check();
+    const submit = page.getByRole('button', { name: /Criar conta/ });
+    await Promise.all([page.waitForResponse(response => response.url().startsWith(`${providerOrigin}/auth/v1/signup`) && response.status() === 429), submit.click()]);
+    await page.getByText('O cadastro foi recusado. Confira os dados ou aguarde antes de tentar novamente.', { exact: true }).waitFor();
+    assert.equal(rejectedSignups, 1, 'no automatic retry after a confirmed rejection');
+    assert.equal(await submit.isEnabled(), true, 'the person can correct data and retry manually');
+    await Promise.all([page.waitForResponse(response => response.url().startsWith(`${providerOrigin}/auth/v1/signup`) && response.status() === 429), submit.click()]);
+    await page.getByText('O cadastro foi recusado. Confira os dados ou aguarde antes de tentar novamente.', { exact: true }).waitFor();
+    assert.equal(rejectedSignups, 2, 'one request per explicit submit');
+  } finally { await rejectedContext.close(); }
   const context = await browser.newContext({ serviceWorkers: 'block' });
   await context.route('**/*', route => {
     const destination = new URL(route.request().url());
