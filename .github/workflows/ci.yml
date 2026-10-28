@@ -38,3 +38,5 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run isolated desktop and mobile UI checks
         run: node tests/browser/public-ui.e2e.mjs
+      - name: Run synthetic shared-session check
+        run: node tests/browser/auth-shared-session.e2e.mjs
