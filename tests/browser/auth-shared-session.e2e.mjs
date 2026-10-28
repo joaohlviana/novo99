@@ -4,7 +4,7 @@
 // Playwright, installed project dependencies, and permission to build Next.
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { cp, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -35,7 +35,10 @@ try {
   for (const name of ['app', 'components', 'lib', 'public', 'next.config.ts', 'next-env.d.ts', 'package.json', 'tsconfig.json', 'proxy.ts']) {
     await cp(path.join(root, name), path.join(temp, name), { recursive: true });
   }
-  await symlink(path.join(root, 'node_modules'), path.join(temp, 'node_modules'), 'dir');
+  // Turbopack does not resolve modules outside its workspace root. Copy the
+  // already installed dependencies instead of linking them out of the fixture.
+  // Keep npm's relative .bin links relative to the copied node_modules tree.
+  await cp(path.join(root, 'node_modules'), path.join(temp, 'node_modules'), { recursive: true, verbatimSymlinks: true });
   // A test-only replacement: production config stays fixed to the new tenant.
   const original = await readFile(path.join(temp, 'lib/config.mjs'), 'utf8');
   if (!original.includes('https://rycaxboqkkiopjdecgld.supabase.co')) throw new Error('Unexpected production config; refusing fixture');
@@ -64,9 +67,10 @@ try {
   // authOrigin permits localhost for HTTP, not a numeric loopback address.
   // This fixture exercises login/logout, not signup or the callback.
   const env = { PATH: process.env.PATH, AUTH_SSR_ENABLED: 'true', AUTH_APP_ORIGIN: 'http://localhost:38971', AUTH_SESSION_FENCE_SECRET: 'synthetic-fixture-key-32-characters-long', NEXT_PUBLIC_SUPABASE_URL: providerOrigin, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture', NEXT_TELEMETRY_DISABLED: '1', CI: 'true' };
-  const build = spawnSync(path.join(root, 'node_modules/.bin/next'), ['build'], { cwd: temp, env, stdio: 'inherit' });
+  const nextBin = path.join(temp, 'node_modules/.bin/next');
+  const build = spawnSync(nextBin, ['build'], { cwd: temp, env, stdio: 'inherit' });
   if (build.status !== 0) throw new Error('Synthetic fixture build failed');
-  next = spawn(path.join(root, 'node_modules/.bin/next'), ['start', '-H', '127.0.0.1', '-p', '38971'], { cwd: temp, env, stdio: 'ignore' });
+  next = spawn(nextBin, ['start', '-H', '127.0.0.1', '-p', '38971'], { cwd: temp, env, stdio: 'ignore' });
   let ready = false;
   for (let i = 0; i < 150; i++) { try { if ((await fetch(appOrigin)).ok) { ready = true; break; } } catch {} await delay(200); }
   assert.ok(ready, 'Fixture server unavailable');
